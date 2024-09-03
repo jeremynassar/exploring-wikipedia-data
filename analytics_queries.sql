@@ -1,7 +1,7 @@
 -- Looking at top 5 wiki sites based on page views
 select  wiki,sum(views) as total_views
 from `bigquery-public-data.wikipedia.pageviews_2023`
-where DATE(datehour) >= "2023-08-01" 
+where DATE(datehour) >= "2023-01-01" 
 group by 1
 order by 2 desc
 limit 5
@@ -14,7 +14,7 @@ WITH base AS (
     , wiki
     , sum(views) as total_page_views
   from `bigquery-public-data.wikipedia.pageviews_2023`
-  where DATE(datehour) >= "2023-08-18"
+  where DATE(datehour) >= "2023-01-01"
   group by 1,2
 )
 
@@ -29,18 +29,28 @@ where search_ranking = 1
 order by 3
 
 
+  -- views to wikipedia by month
+select 
+     format_date('%Y-%m',datehour) as month
+     , sum(views) as total_views
+from `bigquery-public-data.wikipedia.pageviews_2023` 
+where date(datehour) >= "2023-01-01" 
+group by 1
+order by 1
+
+  
 -- percent of traffic top 5 wikipedia sites account for 
 with base as (
     select  sum(views) as total_views_all_sites
     from `bigquery-public-data.wikipedia.pageviews_2023`
-    where DATE(datehour) >= "2023-08-01" 
+    where DATE(datehour) >= "2023-01-01" 
     )
 ,
 
 top_5_sites as (
     select  wiki, sum(views) as total_views_top_5_sites
     from `bigquery-public-data.wikipedia.pageviews_2023`
-    where DATE(datehour) >= "2023-08-01" and wiki in ("en","en.m","ru.m","ja.m","es.m")
+    where DATE(datehour) >= "2023-01-01" and wiki in ("en","en.m","ru.m","ja.m","es.m")
     group by 1
     )
 
@@ -51,3 +61,5 @@ from
   top_5_sites
   cross join base
 order by 2 desc
+
+
