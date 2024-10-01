@@ -1,4 +1,4 @@
--- Looking at top 5 wiki sites based on page views
+-- This query is looking at top 5 most viewed wikipedia sites based on page views
 select  wiki,sum(views) as total_views
 from `bigquery-public-data.wikipedia.pageviews_2023`
 where DATE(datehour) >= "2023-01-01" 
@@ -7,7 +7,7 @@ order by 2 desc
 limit 5
 
 
--- Top viewed title by wikipedia site
+-- This query is looking for most viewed title by page views by wikipedia site
 WITH base AS (
   select
     title
@@ -29,7 +29,7 @@ where search_ranking = 1
 order by 3
 
 
-  -- views to wikipedia by month
+  -- This query is giving us a aggregated look at the sum of views to all wikipedia sites by month
 select 
      format_date('%Y-%m',datehour) as month
      , sum(views) as total_views
@@ -39,27 +39,21 @@ group by 1
 order by 1
 
   
--- percent of traffic top 5 wikipedia sites account for 
-with base as (
-    select  sum(views) as total_views_all_sites
+-- This query is giving us percent of traffic that the top 5 wikipedia sites account for 
+with total_views_all_sites as (
+    select sum(views) as total_views
     from `bigquery-public-data.wikipedia.pageviews_2023`
-    where DATE(datehour) >= "2023-01-01" 
-    )
-,
-
-top_5_sites as (
-    select  wiki, sum(views) as total_views_top_5_sites
-    from `bigquery-public-data.wikipedia.pageviews_2023`
-    where DATE(datehour) >= "2023-01-01" and wiki in ("en","en.m","ru.m","ja.m","es.m")
-    group by 1
-    )
-
+    where DATE(datehour) >= "2023-12-30"
+)
 select 
-  top_5_sites.wiki
-  ,(top_5_sites.total_views_top_5_sites / base.total_views_all_sites) * 100 AS traffic_percentage
-from
-  top_5_sites
-  cross join base
-order by 2 desc
+  wiki,
+  (sum(views) / (select total_views from total_views_all_sites)) * 100 as traffic_percentage
+from 
+  `bigquery-public-data.wikipedia.pageviews_2023`
+where 
+  DATE(datehour) >= "2023-12-30" 
+  and wiki in ("en","en.m","ru.m","ja.m","es.m")
+group by wiki
+order by traffic_percentage desc;
 
 
